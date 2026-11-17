@@ -158163,7 +158163,6 @@ window.__ModuleLoader__.load({
       '.mp-login-actions{display:flex;align-items:center;gap:8px;width:100%;justify-content:center;padding-top:2px}',
       '.mp-login-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding-top:2px;font-size:12px;line-height:1.4;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
       '.mp-login-switch-text{min-width:0;flex:1}',
-      '.mp-login-hint{margin:0;width:100%;font-size:11px;line-height:1.5;text-align:left;color:var(--dsw-alias-label-tertiary,#71717a)}',
       '.mp-login-warn{margin:0;width:100%;font-size:11px;line-height:1.5;text-align:left;color:var(--dsw-alias-state-warning-text,#fbbf24)}',
       '.mp-login-nav .mp-kit-input{height:32px}',
       '@keyframes mp-login-pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}',
