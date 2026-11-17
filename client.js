@@ -156386,6 +156386,9 @@ window.__ModuleLoader__.load({
       var phasePair = useState('idle') // idle | loading
       var errorPair = useState('')
       var noticePair = useState('')
+      // Opt-in: keeping the password is the only way to page the whole library,
+      // because the native API mints a JWT from it.
+      var keepPair = useState(false)
 
       var setServer = serverPair[1]
       var setUsername = userPair[1]
@@ -156393,6 +156396,7 @@ window.__ModuleLoader__.load({
       var setPhase = phasePair[1]
       var setError = errorPair[1]
       var setNotice = noticePair[1]
+      var setKeepPassword = keepPair[1]
 
       function reset() {
         setServer('')
@@ -156401,6 +156405,7 @@ window.__ModuleLoader__.load({
         setPhase('idle')
         setError('')
         setNotice('')
+        setKeepPassword(false)
       }
 
       async function connect() {
@@ -156423,6 +156428,7 @@ window.__ModuleLoader__.load({
             server: server,
             username: username,
             password: password,
+            storePassword: keepPair[0] === true,
           })
           setPassword('')
           setPhase('idle')
@@ -156442,11 +156448,13 @@ window.__ModuleLoader__.load({
         phase: phasePair[0],
         error: errorPair[0],
         notice: noticePair[0],
+        keepPassword: keepPair[0],
         setServer: setServer,
         setUsername: setUsername,
         setPassword: setPassword,
         setError: setError,
         setNotice: setNotice,
+        setKeepPassword: keepPair[1],
         connect: connect,
         reset: reset,
       }
@@ -157937,19 +157945,8 @@ window.__ModuleLoader__.load({
       '.mp-online-card.is-kugou{--mp-brand:#2b7cff}',
       '.mp-online-card.is-kugouLite{--mp-brand:#6aa8ff}',
       '.mp-online-card.is-navidrome{--mp-brand:#00b3a4}',
-      '.mp-navidrome-body{display:flex;flex-direction:column;gap:8px}',
-      '.mp-navidrome-body .mp-kit-input{flex:0 0 auto;width:100%}',
       '.mp-online-error{color:var(--dsw-alias-state-error-text,#f87171);font-size:12px;line-height:1.4}',
       '.mp-online-ok{color:var(--dsw-alias-state-success-text,#4ade80);font-size:12px;line-height:1.4}',
-      '.mp-navidrome-form{display:flex;flex-direction:column;gap:6px;min-width:min(380px,70vw)}',
-      '.mp-navidrome-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%;min-width:0}',
-      '.mp-navidrome-footer .mp-btn{flex:none;min-width:76px;justify-content:center}',
-      '.mp-navidrome-form .mp-kit-input{flex:0 0 auto;width:100%;height:32px}',
-      '.mp-navidrome-label{font-size:12px;color:var(--dsw-alias-label-secondary,#a1a1aa);margin-top:4px}',
-      '.mp-navidrome-hint{margin:4px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#71717a)}',
-      '.mp-navidrome-check{display:flex;align-items:flex-start;gap:7px;margin-top:6px;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-secondary,#a1a1aa);cursor:pointer}',
-      '.mp-navidrome-check input{margin:2px 0 0;flex:0 0 auto}',
-      '.mp-navidrome-warn{margin:2px 0 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-state-warning-text,#fbbf24)}',
       '.mp-loaded-of{font-size:12px;color:var(--dsw-alias-label-tertiary,#71717a)}',
       '.mp-songs-pane{flex:1;min-height:0;display:flex;flex-direction:column}',
       '.mp-entry-list{display:flex;flex-direction:column;gap:2px;padding:4px 0 12px}',
@@ -158164,6 +158161,11 @@ window.__ModuleLoader__.load({
       '.mp-login-step b{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--dsw-alias-interactive-bg-active,rgba(255,255,255,.1));color:var(--dsw-alias-label-secondary,#b4b4bd);font-size:11px;font-weight:650;flex:none}',
       '.mp-login-secure{display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8a8a93);opacity:.9}',
       '.mp-login-actions{display:flex;align-items:center;gap:8px;width:100%;justify-content:center;padding-top:2px}',
+      '.mp-login-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding-top:2px;font-size:12px;line-height:1.4;color:var(--dsw-alias-label-secondary,#a1a1aa)}',
+      '.mp-login-switch-text{min-width:0;flex:1}',
+      '.mp-login-hint{margin:0;width:100%;font-size:11px;line-height:1.5;text-align:left;color:var(--dsw-alias-label-tertiary,#71717a)}',
+      '.mp-login-warn{margin:0;width:100%;font-size:11px;line-height:1.5;text-align:left;color:var(--dsw-alias-state-warning-text,#fbbf24)}',
+      '.mp-login-nav .mp-kit-input{height:32px}',
       '@keyframes mp-login-pulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}',
       '@keyframes mp-login-spin{to{transform:rotate(360deg)}}',
       '@media (prefers-reduced-motion:reduce){.mp-login-dot,.mp-login-spinner{animation:none}}',
@@ -163710,9 +163712,8 @@ window.__ModuleLoader__.load({
       var busyPair = useState(false)
       var busy = busyPair[0]
       var setBusy = busyPair[1]
-      // Navidrome credential form. Every hook in this component must run on each
-      // render, so it lives here rather than inside the tab/card render helpers.
-      var navForm = useNavidromeForm()
+      // Navidrome signs in through the shared login window, so this sheet no longer
+      // owns a credential form of its own.
       var outputPair = useState([])
       var outputDevices = outputPair[0]
       var setOutputDevices = outputPair[1]
@@ -164413,11 +164414,11 @@ window.__ModuleLoader__.load({
           return sourceLabelOf(provider)
         }
         /**
-         * Navidrome / Subsonic: a URL + credential form instead of a QR flow.
-         * The password only travels once, to be traded for a salted token.
+         * Navidrome / Subsonic: no QR flow, but the credentials live in the shared
+         * login window like every other platform. This card only shows state and
+         * the way in; it never renders a second copy of the form.
          */
-        function navidromeCard(info, form) {
-          var busy = form.phase === 'loading'
+        function navidromeCard(info) {
           return h(
             'div',
             { key: 'navidrome', className: cx('mp-online-card', 'is-navidrome', info.loggedIn === true && 'is-logged') },
@@ -164454,58 +164455,21 @@ window.__ModuleLoader__.load({
                     size: 15,
                     title: t('online.logout'),
                     onClick: function () {
-                      form.reset()
                       void logoutProvider('navidrome')
                     },
                   }),
                 )
               : h(
                   'div',
-                  { className: 'mp-online-body is-out mp-navidrome-body' },
+                  { className: 'mp-online-body is-out' },
                   h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
-                  h('input', {
-                    className: 'mp-kit-input',
-                    type: 'url',
-                    placeholder: t('online.navidromeServerPlaceholder'),
-                    value: form.server,
-                    disabled: busy,
-                    onChange: function (event) {
-                      form.setServer(event.target.value)
-                    },
-                  }),
-                  h('input', {
-                    className: 'mp-kit-input',
-                    type: 'text',
-                    placeholder: t('online.navidromeUser'),
-                    value: form.username,
-                    disabled: busy,
-                    onChange: function (event) {
-                      form.setUsername(event.target.value)
-                    },
-                  }),
-                  h('input', {
-                    className: 'mp-kit-input',
-                    type: 'password',
-                    placeholder: t('online.navidromePassword'),
-                    value: form.password,
-                    disabled: busy,
-                    onChange: function (event) {
-                      form.setPassword(event.target.value)
-                    },
-                  }),
-                  form.error !== ''
-                    ? h('span', { className: 'mp-online-error' }, form.error)
-                    : form.notice !== ''
-                      ? h('span', { className: 'mp-online-ok' }, form.notice)
-                      : null,
                   h(Button, {
                     variant: 'primary',
-                    icon: 'checkCircle',
-                    disabled: busy,
+                    icon: 'login',
                     onClick: function () {
-                      void form.connect()
+                      pushLayer('login', { provider: 'navidrome' })
                     },
-                    children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
+                    children: t('online.navidromeConnect'),
                   }),
                 ),
           )
@@ -164513,9 +164477,9 @@ window.__ModuleLoader__.load({
 
         function card(provider) {
           var info = providers[provider] || {}
-          // Navidrome signs in with credentials, not a QR code, so it gets its own
-          // body instead of the shared "scan to sign in" branch below.
-          if (provider === 'navidrome') return navidromeCard(info, navForm)
+          // Navidrome has no QR flow, but its credentials live in the same login
+          // window; the card just shows state and opens it.
+          if (provider === 'navidrome') return navidromeCard(info)
           return h(
             'div',
             { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },
@@ -165790,6 +165754,7 @@ window.__ModuleLoader__.load({
             className: 'mp-kit-input',
             type: 'url',
             placeholder: t('online.navidromeServerPlaceholder'),
+            'aria-label': t('online.navidromeServer'),
             value: navForm.server,
             disabled: busy,
             onChange: function (event) {
@@ -165800,6 +165765,7 @@ window.__ModuleLoader__.load({
             className: 'mp-kit-input',
             type: 'text',
             placeholder: t('online.navidromeUser'),
+            'aria-label': t('online.navidromeUser'),
             value: navForm.username,
             disabled: busy,
             onChange: function (event) {
@@ -165810,6 +165776,7 @@ window.__ModuleLoader__.load({
             className: 'mp-kit-input',
             type: 'password',
             placeholder: t('online.navidromePassword'),
+            'aria-label': t('online.navidromePassword'),
             value: navForm.password,
             disabled: busy,
             onChange: function (event) {
@@ -165821,6 +165788,23 @@ window.__ModuleLoader__.load({
             : navForm.notice !== ''
               ? h('span', { className: 'mp-online-ok' }, navForm.notice)
               : null,
+          h(
+            'div',
+            { className: 'mp-login-switch' },
+            h('span', { className: 'mp-login-switch-text' }, t('online.navidromeKeep')),
+            h(Switch, {
+              key: 'keep',
+              value: navForm.keepPassword === true,
+              disabled: busy,
+              label: t('online.navidromeKeep'),
+              onChange: function (next) {
+                navForm.setKeepPassword(next === true)
+              },
+            }),
+          ),
+          navForm.keepPassword === true
+            ? h('p', { className: 'mp-login-warn' }, t('online.navidromeKeepWarn'))
+            : null,
           h(
             'div',
             { className: 'mp-login-actions' },
@@ -167035,11 +167019,9 @@ window.__ModuleLoader__.load({
 
       function reloginExpired() {
         void logoutProvider(provider).then(function () {
-          // Navidrome signs in with a URL + credentials, not a QR code, so it must
-          // reopen the credential dialog; the QR sheet would show an empty code the
-          // user cannot scan and leave them stuck.
-          var layer = supports(provider, 'loginQr') ? 'login' : 'navidrome'
-          pushLayer(layer, layer === 'navidrome' ? {} : { provider: provider, mode: 'qq' })
+          // Every platform signs in through the shared window; Navidrome has no QR
+          // code, so the window picks its credential form from the capabilities.
+          pushLayer('login', { provider: provider, mode: 'qq' })
         })
       }
       var currentEntries = []
@@ -167785,7 +167767,7 @@ window.__ModuleLoader__.load({
                 {
                   icon: 'settings',
                   onClick: function () {
-                    pushLayer('navidrome')
+                    pushLayer('login', { provider: 'navidrome' })
                   },
                 },
                 t('online.enableFullLibrary'),
@@ -171923,12 +171905,10 @@ window.__ModuleLoader__.load({
                       role: 'button',
                       tabIndex: 0,
                       onClick: function () {
-                        // Navidrome has no QR flow: open the credential dialog
-                        // directly instead of the shared sign-in sheet.
-                        if (!supports(ui.source, 'loginQr')) {
-                          pushLayer('navidrome')
-                          return
-                        }
+                        // Every platform signs in through the same window. Navidrome
+                        // has no QR flow, so it renders the shared form instead of a
+                        // separate dialog — the window picks the view from the source's
+                        // capabilities.
                         pushLayer('login', { provider: ui.source, mode: 'qq' })
                       },
                     },
@@ -172050,7 +172030,6 @@ window.__ModuleLoader__.load({
         if (layer.kind === 'newPlaylist') return h(NewPlaylistDialog, { key: 'newPlaylist', layer: layer })
         if (layer.kind === 'folderPicker') return h(FolderPickerDialog, { key: 'folderPicker', layer: layer })
         if (layer.kind === 'onlineAddTo') return h(OnlineAddToDialog, { key: 'onlineAddTo', layer: layer })
-        if (layer.kind === 'navidrome') return h(NavidromeDialog, { key: 'navidrome', layer: layer })
         if (layer.kind === 'settings') {
           return h(SettingsSheet, {
             key: 'settings',
@@ -173891,172 +173870,6 @@ window.__ModuleLoader__.load({
         },
         h('div', { className: 'mp-set-desc' }, track ? track.title || '' : ''),
         body,
-      )
-    }
-
-    // ── src/client/components/ui/navidrome-dialog.js
-    /**
-     * Navidrome / Subsonic connection dialog.
-     *
-     * Navidrome has no QR sign-in, so the top-bar chip opens this form instead of
-     * the shared login layer: server URL, username, password, and a save button.
-     *
-     * The password is sent once to POST /online/navidrome/login, where the host
-     * trades it for a salted token (md5(paste + salt)) and persists only that. It
-     * is cleared from component state the moment the request settles.
-     */
-
-    function NavidromeDialog() {
-      var serverPair = useState('')
-      var userPair = useState('')
-      var passPair = useState('')
-      var busyPair = useState(false)
-      var errorPair = useState('')
-      var noticePair = useState('')
-      // Opt-in: keeping the password is the only way to page the whole library,
-      // because the native API mints a JWT from it.
-      var keepPair = useState(false)
-      var keepPassword = keepPair[0]
-      var setKeepPassword = keepPair[1]
-
-      var server = serverPair[0]
-      var setServer = serverPair[1]
-      var username = userPair[0]
-      var setUsername = userPair[1]
-      var password = passPair[0]
-      var setPassword = passPair[1]
-      var busy = busyPair[0]
-      var setBusy = busyPair[1]
-      var error = errorPair[0]
-      var setError = errorPair[1]
-      var notice = noticePair[0]
-      var setNotice = noticePair[1]
-
-      function save() {
-        if (busy) return
-        var trimmedServer = String(server || '').trim()
-        var trimmedUser = String(username || '').trim()
-        var secret = String(password || '')
-        setError('')
-        setNotice('')
-
-        if (!/^https?:\/\//i.test(trimmedServer)) {
-          setError(t('online.navidromeBadServer'))
-          return
-        }
-        if (trimmedUser === '') {
-          setError(t('online.navidromeNeedUser'))
-          return
-        }
-        if (secret === '') {
-          setError(t('online.navidromeNeedPassword'))
-          return
-        }
-
-        setBusy(true)
-        postJson(API + 'online/navidrome/login', {
-          server: trimmedServer,
-          username: trimmedUser,
-          password: secret,
-          storePassword: keepPassword === true,
-        })
-          .then(function (result) {
-            setBusy(false)
-            // Drop the secret as soon as it is spent.
-            setPassword('')
-            setNotice(t('online.navidromeOk', { version: (result && result.serverVersion) || 'ok' }))
-            void loadProviders()
-            showToast(t('online.loginSuccess'))
-            // Leave the dialog open briefly so the success line is readable, then
-            // close and land on the source the user just configured.
-            window.setTimeout(function () {
-              popLayer()
-            }, 700)
-          })
-          .catch(function (err) {
-            setBusy(false)
-            setError(errorText(err))
-          })
-      }
-
-      function onKeyDown(event) {
-        if (event.key === 'Enter') save()
-        if (event.key === 'Escape') popLayer()
-      }
-
-      return h(
-        KitModal,
-        {
-          title: t('online.navidromeTitle'),
-          small: true,
-          onClose: popLayer,
-          footer: h(
-            'div',
-            { className: 'mp-navidrome-footer' },
-            h(Button, { key: 'cancel', variant: 'ghost', onClick: function () { popLayer() } }, t('page.cancel')),
-            h(
-              Button,
-              { key: 'save', variant: 'primary', disabled: busy, onClick: save },
-              busy ? t('online.navidromeConnecting') : t('online.navidromeSave'),
-            ),
-          ),
-        },
-        h(
-          'div',
-          { className: 'mp-navidrome-form' },
-          h('label', { className: 'mp-navidrome-label' }, t('online.navidromeServer')),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'url',
-            placeholder: t('online.navidromeServerPlaceholder'),
-            value: server,
-            disabled: busy,
-            autoFocus: true,
-            onKeyDown: onKeyDown,
-            onChange: function (event) {
-              setServer(event.target.value)
-            },
-          }),
-          h('label', { className: 'mp-navidrome-label' }, t('online.navidromeUser')),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'text',
-            value: username,
-            disabled: busy,
-            onKeyDown: onKeyDown,
-            onChange: function (event) {
-              setUsername(event.target.value)
-            },
-          }),
-          h('label', { className: 'mp-navidrome-label' }, t('online.navidromePassword')),
-          h('input', {
-            className: 'mp-kit-input',
-            type: 'password',
-            value: password,
-            disabled: busy,
-            onKeyDown: onKeyDown,
-            onChange: function (event) {
-              setPassword(event.target.value)
-            },
-          }),
-          h(
-            'label',
-            { className: 'mp-navidrome-check' },
-            h('input', {
-              type: 'checkbox',
-              checked: keepPassword === true,
-              disabled: busy,
-              onChange: function (event) {
-                setKeepPassword(event.target.checked === true)
-              },
-            }),
-            h('span', null, t('online.navidromeKeep')),
-          ),
-          h('p', { className: 'mp-navidrome-hint' }, t('online.navidromeHint')),
-          keepPassword === true ? h('p', { className: 'mp-navidrome-warn' }, t('online.navidromeKeepWarn')) : null,
-          error !== '' ? h('p', { className: 'mp-online-error' }, error) : null,
-          notice !== '' ? h('p', { className: 'mp-online-ok' }, notice) : null,
-        ),
       )
     }
 

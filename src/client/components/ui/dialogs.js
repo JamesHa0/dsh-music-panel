@@ -801,6 +801,7 @@ function LoginDialog(props) {
         className: 'mp-kit-input',
         type: 'url',
         placeholder: t('online.navidromeServerPlaceholder'),
+        'aria-label': t('online.navidromeServer'),
         value: navForm.server,
         disabled: busy,
         onChange: function (event) {
@@ -811,6 +812,7 @@ function LoginDialog(props) {
         className: 'mp-kit-input',
         type: 'text',
         placeholder: t('online.navidromeUser'),
+        'aria-label': t('online.navidromeUser'),
         value: navForm.username,
         disabled: busy,
         onChange: function (event) {
@@ -821,6 +823,7 @@ function LoginDialog(props) {
         className: 'mp-kit-input',
         type: 'password',
         placeholder: t('online.navidromePassword'),
+        'aria-label': t('online.navidromePassword'),
         value: navForm.password,
         disabled: busy,
         onChange: function (event) {
@@ -832,6 +835,23 @@ function LoginDialog(props) {
         : navForm.notice !== ''
           ? h('span', { className: 'mp-online-ok' }, navForm.notice)
           : null,
+      h(
+        'div',
+        { className: 'mp-login-switch' },
+        h('span', { className: 'mp-login-switch-text' }, t('online.navidromeKeep')),
+        h(Switch, {
+          key: 'keep',
+          value: navForm.keepPassword === true,
+          disabled: busy,
+          label: t('online.navidromeKeep'),
+          onChange: function (next) {
+            navForm.setKeepPassword(next === true)
+          },
+        }),
+      ),
+      navForm.keepPassword === true
+        ? h('p', { className: 'mp-login-warn' }, t('online.navidromeKeepWarn'))
+        : null,
       h(
         'div',
         { className: 'mp-login-actions' },

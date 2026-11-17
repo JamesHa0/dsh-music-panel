@@ -64,26 +64,28 @@ for (const helper of HELPERS) {
   }
 }
 
-// ── 2. the Navidrome form hook lives on the component ─────────────────────
-const componentHook = /^\s{2}var navForm = useNavidromeForm\(\)$/m
-assert.match(
-  source,
-  componentHook,
-  'useNavidromeForm() must be called once, at the top level of SettingsSheet',
-)
-
+// ── 2. Navidrome credentials live in the shared login window ──────────────
+// The sheet used to own a second copy of the credential form, which is exactly
+// how its keep-password option drifted out of sync with the login window. The
+// card now only opens the shared window, so this file must not create the form
+// state at all.
 const calls = (source.match(/useNavidromeForm\(\)/g) || []).length
 assert.equal(
   calls,
-  1,
-  `useNavidromeForm() is called ${calls} times in ${SETTINGS}; it must be called exactly once (the definition is in src/client/components/online/online.js)`,
+  0,
+  `useNavidromeForm() is called ${calls} times in ${SETTINGS}; the sheet must not keep its own credential form (the shared login window owns it)`,
 )
 
-// ── 3. the navidrome card takes the form as a parameter ───────────────────
+// ── 3. the navidrome card opens the shared login window ───────────────────
 assert.match(
   source,
-  /function navidromeCard\(info, form\)/,
-  'navidromeCard must receive the form from its caller instead of creating its own state',
+  /function navidromeCard\(info\)/,
+  'navidromeCard renders state only; it must not receive form state',
+)
+assert.match(
+  source,
+  /pushLayer\('login', \{ provider: 'navidrome' \}\)/,
+  'the navidrome card must hand off to the shared login window',
 )
 
 // ── 4. no hook called from a .map() callback anywhere in src/ ─────────────
@@ -128,7 +130,7 @@ assert.deepEqual(mapViolations, [], mapViolations.join('\n'))
 
 console.log('  ok  no hooks inside tab render helpers')
 console.log('  ok  no hooks inside .map() callbacks')
-console.log('  ok  useNavidromeForm() is called once, on SettingsSheet')
+console.log('  ok  the settings sheet keeps no Navidrome credential form of its own')
 console.log('\npanel.hooks.test.mjs ok')
 
 

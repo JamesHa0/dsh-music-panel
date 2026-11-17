@@ -48,9 +48,8 @@ function SettingsSheet(props) {
   var busyPair = useState(false)
   var busy = busyPair[0]
   var setBusy = busyPair[1]
-  // Navidrome credential form. Every hook in this component must run on each
-  // render, so it lives here rather than inside the tab/card render helpers.
-  var navForm = useNavidromeForm()
+  // Navidrome signs in through the shared login window, so this sheet no longer
+  // owns a credential form of its own.
   var outputPair = useState([])
   var outputDevices = outputPair[0]
   var setOutputDevices = outputPair[1]
@@ -751,11 +750,11 @@ function SettingsSheet(props) {
       return sourceLabelOf(provider)
     }
     /**
-     * Navidrome / Subsonic: a URL + credential form instead of a QR flow.
-     * The password only travels once, to be traded for a salted token.
+     * Navidrome / Subsonic: no QR flow, but the credentials live in the shared
+     * login window like every other platform. This card only shows state and
+     * the way in; it never renders a second copy of the form.
      */
-    function navidromeCard(info, form) {
-      var busy = form.phase === 'loading'
+    function navidromeCard(info) {
       return h(
         'div',
         { key: 'navidrome', className: cx('mp-online-card', 'is-navidrome', info.loggedIn === true && 'is-logged') },
@@ -792,58 +791,21 @@ function SettingsSheet(props) {
                 size: 15,
                 title: t('online.logout'),
                 onClick: function () {
-                  form.reset()
                   void logoutProvider('navidrome')
                 },
               }),
             )
           : h(
               'div',
-              { className: 'mp-online-body is-out mp-navidrome-body' },
+              { className: 'mp-online-body is-out' },
               h('span', { className: 'mp-online-hint-text' }, t('online.navidromeHint')),
-              h('input', {
-                className: 'mp-kit-input',
-                type: 'url',
-                placeholder: t('online.navidromeServerPlaceholder'),
-                value: form.server,
-                disabled: busy,
-                onChange: function (event) {
-                  form.setServer(event.target.value)
-                },
-              }),
-              h('input', {
-                className: 'mp-kit-input',
-                type: 'text',
-                placeholder: t('online.navidromeUser'),
-                value: form.username,
-                disabled: busy,
-                onChange: function (event) {
-                  form.setUsername(event.target.value)
-                },
-              }),
-              h('input', {
-                className: 'mp-kit-input',
-                type: 'password',
-                placeholder: t('online.navidromePassword'),
-                value: form.password,
-                disabled: busy,
-                onChange: function (event) {
-                  form.setPassword(event.target.value)
-                },
-              }),
-              form.error !== ''
-                ? h('span', { className: 'mp-online-error' }, form.error)
-                : form.notice !== ''
-                  ? h('span', { className: 'mp-online-ok' }, form.notice)
-                  : null,
               h(Button, {
                 variant: 'primary',
-                icon: 'checkCircle',
-                disabled: busy,
+                icon: 'login',
                 onClick: function () {
-                  void form.connect()
+                  pushLayer('login', { provider: 'navidrome' })
                 },
-                children: busy ? t('online.navidromeConnecting') : t('online.navidromeConnect'),
+                children: t('online.navidromeConnect'),
               }),
             ),
       )
@@ -851,9 +813,9 @@ function SettingsSheet(props) {
 
     function card(provider) {
       var info = providers[provider] || {}
-      // Navidrome signs in with credentials, not a QR code, so it gets its own
-      // body instead of the shared "scan to sign in" branch below.
-      if (provider === 'navidrome') return navidromeCard(info, navForm)
+      // Navidrome has no QR flow, but its credentials live in the same login
+      // window; the card just shows state and opens it.
+      if (provider === 'navidrome') return navidromeCard(info)
       return h(
         'div',
         { key: provider, className: cx('mp-online-card', 'is-' + provider, info.loggedIn === true && 'is-logged') },

@@ -99,11 +99,9 @@ function OnlineContent(props) {
 
   function reloginExpired() {
     void logoutProvider(provider).then(function () {
-      // Navidrome signs in with a URL + credentials, not a QR code, so it must
-      // reopen the credential dialog; the QR sheet would show an empty code the
-      // user cannot scan and leave them stuck.
-      var layer = supports(provider, 'loginQr') ? 'login' : 'navidrome'
-      pushLayer(layer, layer === 'navidrome' ? {} : { provider: provider, mode: 'qq' })
+      // Every platform signs in through the shared window; Navidrome has no QR
+      // code, so the window picks its credential form from the capabilities.
+      pushLayer('login', { provider: provider, mode: 'qq' })
     })
   }
   var currentEntries = []
@@ -849,7 +847,7 @@ function OnlineContent(props) {
             {
               icon: 'settings',
               onClick: function () {
-                pushLayer('navidrome')
+                pushLayer('login', { provider: 'navidrome' })
               },
             },
             t('online.enableFullLibrary'),

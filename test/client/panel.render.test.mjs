@@ -419,17 +419,48 @@ assert.ok(
   'the settings sheet survives a navidrome source with no session',
 )
 
-// 5c. the Navidrome connection dialog renders its three fields
-internals.overlayStore.set({ layers: [{ kind: 'navidrome', props: {} }] })
+// 5c. Navidrome signs in through the shared login window, not a dialog of its
+// own: the window picks the credential form from the source's capabilities.
+internals.overlayStore.set({ layers: [{ kind: 'login', props: { provider: 'navidrome' } }] })
+internals.uiStore.set({ source: 'navidrome', nav: 'recent', filter: null, query: '' })
+internals.onlineStore.set({
+  provider: 'navidrome',
+  results: [],
+  phase: 'idle',
+  playlists: [],
+  providers: {
+    navidrome: { loggedIn: false, capabilities: { loginPassword: true, loginQr: false } },
+  },
+})
 const navDialog = panel()
 const navDialogText = textOf(navDialog)
-assert.ok(classesOf(navDialog).has('mp-dialog'), 'the navidrome connection dialog renders')
-assert.ok(navDialogText.includes('服务器地址') || navDialogText.includes('Server URL'), 'the server field renders')
-assert.ok(navDialogText.includes('用户名') || navDialogText.includes('Username'), 'the username field renders')
-assert.ok(navDialogText.includes('密码') || navDialogText.includes('Password'), 'the password field renders')
+const navDialogClasses = classesOf(navDialog)
+assert.ok(navDialogClasses.has('mp-login-window'), 'navidrome uses the shared login window')
+assert.ok(navDialogClasses.has('mp-login-nav'), 'the shared window renders the credential form')
+assert.ok(!navDialogClasses.has('mp-navidrome-form'), 'the standalone navidrome dialog is gone')
+// The three fields carry their label as an aria-label; the visible text lives in
+// placeholders, which textOf() does not traverse.
+const navInputs = nodesWithClass(navDialog, 'mp-kit-input')
+assert.equal(navInputs.length, 3, 'the form renders server / username / password')
+const navLabels = navInputs.map((node) => String(node.props['aria-label'] || ''))
+for (const want of ['服务器地址', '用户名', '密码']) {
+  assert.ok(
+    navLabels.includes(want) || navLabels.some((label) => /Server URL|Username|Password/.test(label)),
+    `the ${want} field renders`,
+  )
+}
+const navTypes = navInputs.map((node) => String(node.props.type || ''))
+assert.ok(navTypes.includes('password'), 'the password field is masked')
+// Keeping the password is what unlocks paging the whole library, so the shared
+// form must expose the opt-in the standalone dialog used to own.
+assert.ok(navDialogClasses.has('mp-login-switch'), 'the keep-password opt-in survives the move')
 assert.ok(
-  navDialogText.includes('保存并连接') || navDialogText.includes('Save and connect'),
-  'the save button renders',
+  navDialogText.includes('保存密码') || navDialogText.includes('Keep'),
+  'the keep-password label renders',
+)
+assert.ok(
+  navDialogText.includes('连接') || navDialogText.includes('Connect'),
+  'the connect button renders',
 )
 
 // 6. tag editor / batch / duplicates / online lyric dialogs

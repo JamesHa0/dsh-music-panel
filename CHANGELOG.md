@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### 登录
+
+- Navidrome / Subsonic 不再单独弹连接对话框：顶栏「连接」按钮和其他平台走同一个登录窗口，
+  窗口按来源能力在二维码与账号表单之间切换；原来的独立卡片（`navidrome-dialog.js`）已移除
+- 设置 → 在线 → Navidrome 卡片也改为唤起同一个登录窗口，不再在卡片里内嵌第二份账号表单；
+  设置页因此不再持有 `useNavidromeForm()` 状态（`panel.hooks.test.mjs` 改为断言「不得调用」）
+- 统一窗口里的 Navidrome 表单补齐「保存密码，启用完整曲库」开关，与旧卡片功能等价；
+  密码输入框补 `aria-label`，不再只靠 placeholder 标识
+- 清理两处仍指向已删除的 `navidrome` 图层、点了没反应的入口：会话过期后的「重新登录」
+  （`reloginExpired()`）和「启用完整曲库」页脚按钮，现在都改为打开统一登录窗口；
+  `panel.navidrome-logout.test.mjs` 增加静态扫描，禁止再出现 `pushLayer('navidrome')`
+
+### 修复
+
+- 设置 → 在线 → Navidrome 的「退出」按钮点击无反应：`useNavidromeForm().reset()` 调用了
+  从未声明的 `setKeepPassword`，点退出时先抛 `ReferenceError`，后面的 `logoutProvider()`
+  根本没执行。补上该绑定；新增 `panel.navidrome-logout.test.mjs` 实际点击按钮并断言
+  `POST /online/logout` 发出，防止再次静默失效
+
 ## 0.36.2 — 2026-11-17
 
 ### 安装
